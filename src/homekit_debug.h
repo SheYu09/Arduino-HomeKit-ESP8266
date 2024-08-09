@@ -22,14 +22,21 @@ typedef unsigned char byte;
 #define HOMEKIT_LOG_LEVEL HOMEKIT_LOG_INFO
 #endif
 
+#ifdef LOG_MSG_BUFFER
+// Added for RATGDO project that has custom logger function.
+// Add -D LOG_MSG_BUFFER to compiler / platformio.ini
+void logToBuffer_P(const char *fmt, ...);
+#define HOMEKIT_PRINTF(message, ...) logToBuffer_P(PSTR(message), ##__VA_ARGS__)
+#else
 #define HOMEKIT_PRINTF XPGM_PRINTF
+#endif
 
 #if HOMEKIT_LOG_LEVEL >= HOMEKIT_LOG_DEBUG
 
 #define DEBUG(message, ...)  HOMEKIT_PRINTF(">>> %s: " message "\n", __func__, ##__VA_ARGS__)
 static uint32_t start_time = 0;
 #define DEBUG_TIME_BEGIN()  start_time=millis();
-#define DEBUG_TIME_END(func_name)  HOMEKIT_PRINTF("### [%7d] %s took %6dms\n", millis(), func_name, (millis() - start_time));
+#define DEBUG_TIME_END(func_name)  HOMEKIT_PRINTF("### [%7lu] %s took %6lu ms\n", millis(), func_name, (millis() - start_time));
 #define DEBUG_HEAP() DEBUG("Free heap: %d", system_get_free_heap_size());
 
 #else
@@ -43,7 +50,7 @@ static uint32_t start_time = 0;
 
 #if HOMEKIT_LOG_LEVEL >= HOMEKIT_LOG_ERROR
 
-#define ERROR(message, ...) HOMEKIT_PRINTF("!!! [%7d] HomeKit: " message "\n", millis(), ##__VA_ARGS__)
+#define ERROR(message, ...) HOMEKIT_PRINTF("!!! [%7lu] HomeKit: " message "\n", millis(), ##__VA_ARGS__)
 
 #else
 
@@ -53,7 +60,7 @@ static uint32_t start_time = 0;
 
 #if HOMEKIT_LOG_LEVEL >= HOMEKIT_LOG_INFO
 
-#define INFO(message, ...) HOMEKIT_PRINTF(">>> [%7d] HomeKit: " message "\n", millis(), ##__VA_ARGS__)
+#define INFO(message, ...) HOMEKIT_PRINTF(">>> [%7lu] HomeKit: " message "\n", millis(), ##__VA_ARGS__)
 #define INFO_HEAP() INFO("Free heap: %d", system_get_free_heap_size());
 
 #else
