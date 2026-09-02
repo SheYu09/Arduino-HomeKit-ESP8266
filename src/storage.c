@@ -111,6 +111,10 @@ int homekit_storage_init() {
     if (strncmp(magic, magic1, sizeof(magic1))) {
         INFO("Formatting HomeKit storage at 0x%x", STORAGE_BASE_ADDR);
         byte *data = malloc(2048);
+        if (!data) {
+            ERROR("Failed to allocate memory for eeprom sector backup");
+            return -1;
+        }
         if (!spiflash_read(STORAGE_BASE_ADDR, data, 2048))
         {
             free(data);
@@ -234,6 +238,10 @@ bool homekit_storage_can_add_pairing() {
 
 static int compact_data() {
     byte *data = malloc(SPI_FLASH_SECTOR_SIZE);
+    if (!data) {
+        ERROR("Failed to allocate memory for compacting HomeKit storage");
+        return -1;
+    }
     if (!spiflash_read(STORAGE_BASE_ADDR, data, SPI_FLASH_SECTOR_SIZE)) {
         free(data);
         ERROR("Failed to compact HomeKit storage: sector data read error");
@@ -245,7 +253,7 @@ static int compact_data() {
         pairing_data_t *pairing_data = (pairing_data_t *)&data[PAIRINGS_OFFSET + sizeof(pairing_data_t)*i];
         if (!strncmp(pairing_data->magic, magic1, sizeof(magic1))) {
             if (i != next_pairing_idx) {
-                memcpy(&data[PAIRINGS_ADDR + sizeof(pairing_data_t)*next_pairing_idx],
+                memcpy(&data[PAIRINGS_OFFSET + sizeof(pairing_data_t)*next_pairing_idx],
                        pairing_data, sizeof(*pairing_data));
             }
             next_pairing_idx++;

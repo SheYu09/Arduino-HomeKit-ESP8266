@@ -33,8 +33,8 @@ void homekit_overclock_end();
 #define ESP_OK SPI_FLASH_RESULT_OK //0
 
 #define SPI_FLASH_SECTOR_SIZE SPI_FLASH_SEC_SIZE
-#define spiflash_read(addr, buffer, size) (spi_flash_read((addr), (buffer), (size)) == ESP_OK)
-#define spiflash_write(addr, data, size) (spi_flash_write((addr), (data), (size)) == ESP_OK)
+#define spiflash_read(addr, buffer, size) (spi_flash_read((addr), (uint32_t *)(buffer), (size)) == ESP_OK)
+#define spiflash_write(addr, data, size) (spi_flash_write((addr), (uint32_t *)(data), (size)) == ESP_OK)
 #define spiflash_erase_sector(addr) (spi_flash_erase_sector((addr) / SPI_FLASH_SECTOR_SIZE) == ESP_OK)
 #endif
 

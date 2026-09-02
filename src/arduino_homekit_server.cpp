@@ -575,7 +575,7 @@ int client_send_encrypted_(client_context_t *context,
 		if (chunk_size > 1024)
 			chunk_size = 1024;
 
-		byte aead[2] = { chunk_size % 256, chunk_size / 256 };
+		byte aead[2] = { (byte)(chunk_size % 256), (byte)(chunk_size / 256) };
 
 		memcpy(encrypted, aead, 2);
 
@@ -3589,10 +3589,10 @@ void arduino_homekit_loop() {
         // 周期 announce 保活: 部分 iOS 环境初次发现不到配件, 每 5 秒重新通告
         static uint32_t next_announce_millis = 0;
         uint32_t time = millis();
-        if (time > next_announce_millis)
+        if ((uint32_t)(time - next_announce_millis) >= 5000)
         {
             MDNS.announce();
-            next_announce_millis = time + 5000;
+            next_announce_millis = time;
         }
 	}
 	if (running_server != nullptr) {
