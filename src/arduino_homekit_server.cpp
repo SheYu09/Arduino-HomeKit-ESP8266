@@ -3438,7 +3438,8 @@ int homekit_get_accessory_id(char *buffer, size_t size) {
 int homekit_get_setup_uri(const homekit_server_config_t *config, char *buffer, size_t buffer_size) {
 	static const char base36Table[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-	if (buffer_size < 20)
+	// Output layout: "X-HM://" (7) + setup code (9) + setup ID (4) + NUL
+	if (buffer_size < 21)
 		return -1;
 
 	if (!config->password)
@@ -3481,7 +3482,9 @@ int homekit_get_setup_uri(const homekit_server_config_t *config, char *buffer, s
 	}
 	buffer += 9;
 
-	strcpy(buffer, config->setupId);
+	// Copy only the 4-char setup ID prefix so an overlong config->setupId
+	// can never overflow the caller's buffer
+	strncpy(buffer, config->setupId, 4);
 	buffer += 4;
 
 	buffer[0] = 0;

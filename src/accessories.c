@@ -205,10 +205,14 @@ homekit_characteristic_t* homekit_characteristic_clone(homekit_characteristic_t*
     p[type_len - 1] = 0;
     p += type_len;
 
-    clone->description = (char*) p;
-    strncpy((char*) p, ch->description, description_len);
-    p[description_len - 1] = 0;
-    p += description_len;
+    if (ch->description) {
+        clone->description = (char*) p;
+        strncpy((char*) p, ch->description, description_len);
+        p[description_len - 1] = 0;
+        p += description_len;
+    } else {
+        clone->description = NULL;
+    }
 
     p = align_pointer(p);
 
@@ -262,9 +266,9 @@ homekit_characteristic_t* homekit_characteristic_clone(homekit_characteristic_t*
         clone->valid_values_ranges.ranges = (homekit_valid_values_range_t*) p;
         memcpy(clone->valid_values_ranges.ranges,
                ch->valid_values_ranges.ranges,
-               sizeof(homekit_valid_values_range_t*) * c);
+               sizeof(homekit_valid_values_range_t) * c);
 
-        p += align_size(sizeof(homekit_valid_values_range_t*) * c);
+        p += align_size(sizeof(homekit_valid_values_range_t) * c);
     }
 
     if (ch->callback) {
@@ -533,6 +537,8 @@ void homekit_characteristic_add_notify_callback(
     void *context
 ) {
     homekit_characteristic_change_callback_t *new_callback = malloc(sizeof(homekit_characteristic_change_callback_t));
+    if (!new_callback)
+        return;
     new_callback->function = function;
     new_callback->context = context;
     new_callback->next = NULL;

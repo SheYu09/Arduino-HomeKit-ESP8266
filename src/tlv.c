@@ -189,13 +189,14 @@ int tlv_parse(const byte *buffer, size_t length, tlv_values_t *values) {
         byte *data = NULL;
 
         // scan TLVs to accumulate total size of subsequent TLVs with same type (chunked data)
+        // Only read the chunk header when both bytes are inside the buffer.
         size_t j = i;
-        while (j < length && buffer[j] == type && buffer[j+1] == 255) {
+        while (j + 1 < length && buffer[j] == type && buffer[j+1] == 255) {
             size_t chunk_size = buffer[j+1];
             size += chunk_size;
             j += chunk_size + 2;
         }
-        if (j < length && buffer[j] == type) {
+        if (j + 1 < length && buffer[j] == type) {
             size_t chunk_size = buffer[j+1];
             size += chunk_size;
         }
@@ -207,12 +208,27 @@ int tlv_parse(const byte *buffer, size_t length, tlv_values_t *values) {
 
             size_t remaining = size;
             while (remaining) {
+                // Verify that the chunk header and its payload are fully present
+                // in the buffer; otherwise stop parsing to avoid out-of-bounds access
+                if (i + 1 >= length || i + 2 + buffer[i+1] > length) {
+                    free(data);
+                    data = NULL;
+                    size = 0;
+                    i = length;
+                    break;
+                }
                 size_t chunk_size = buffer[i+1];
                 memcpy(p, &buffer[i+2], chunk_size);
                 p += chunk_size;
                 i += chunk_size + 2;
                 remaining -= chunk_size;
             }
+        } else if (i + 1 >= length) {
+            // Header without a length byte: stop parsing
+            i = length;
+        } else {
+            // Empty TLV (type, length 0): skip its 2-byte header
+            i += 2;
         }
 
         tlv_add_value_(values, type, data, size);
