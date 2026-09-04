@@ -109,7 +109,7 @@ void server_free(homekit_server_t *server) {
 		delete server->wifi_server;
 		server->wifi_server = nullptr;
 	}
-	DEBUG("homekit_server_t delete WiFiServer at port: %d\n", HOMEKIT_SERVER_PORT);
+	DEBUG("homekit_server_t delete WiFiServer at port: %d", HOMEKIT_SERVER_PORT);
 
 	if (server == running_server) {
 		running_server = NULL;
